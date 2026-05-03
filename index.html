@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TJA Tools - Definitive Side-by-Side</title>
+  <title>TJA Tools - Definitive Fidelity Edition</title>
   <script src="https://unpkg.com/umbrellajs@3.3.0/umbrella.min.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -16,39 +16,26 @@
     * { box-sizing: border-box; }
     html, body { width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0; font-family: sans-serif; background: #222; }
     body { display: flex; flex-direction: column; }
-
     .pane-main { flex: 1; display: flex; flex-direction: row; overflow: hidden; border-bottom: 1px solid #000; }
     .pane-left { flex: 1; display: flex; flex-direction: column; background: #fff; border-right: 1px solid #000; min-width: 0; }
     .pane-right { flex: 1; display: flex; flex-direction: column; background: #eee; position: relative; min-width: 0; }
-
     .area-editor { flex: 1; display: flex; flex-direction: column; padding: 4px; }
-    .area-editor .input { 
-      flex: 1; width: 100%; font-family: monospace; font-size: 11px;
-      resize: none; padding: 10px; border: 1px solid #ccc; outline: none;
-    }
-    
+    .area-editor .input { flex: 1; width: 100%; font-family: monospace; font-size: 11px; resize: none; padding: 10px; border: 1px solid #ccc; outline: none; }
     .area-footer { flex-shrink: 0; background: #fafafa; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
     .button-group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-    .button { 
-      padding: 6px 10px; background: #fff; border: 1px solid #aaa; font-size: 12px; border-radius: 4px;
-      cursor: pointer; color: #333; text-align: center; display: inline-block; text-decoration: none;
-    }
+    .button { padding: 6px 10px; background: #fff; border: 1px solid #aaa; font-size: 12px; border-radius: 4px; cursor: pointer; color: #333; text-decoration: none; }
     .button.is-active { background: #007bff; color: #fff; border-color: #0056b3; font-weight: bold; }
-
-    .area-pages { flex: 1; overflow: auto; padding: 5px; -webkit-overflow-scrolling: touch; }
+    .area-pages { flex: 1; overflow: auto; padding: 5px; -webkit-overflow-scrolling: touch; text-align: center; }
     .page-preview { transition: width 0.1s ease; margin: 0 auto; width: 100%; display: inline-block; }
     canvas { background: #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.2); width: 100% !important; height: auto !important; display: block; margin: 0 auto; }
-
     .area-errors { background: #fee; font-size: 10px; color: #d00; padding: 2px 8px; border-top: 1px solid #fcc; flex-shrink: 0; }
     .is-hidden { display: none; }
-
+    /* Stats Layout */
     .page-statistics { background: #fff; padding: 8px; text-align: left; border-radius: 4px; height: 100%; overflow-y: auto; font-size: 12px; line-height: 1.4; }
-    .page-statistics h2 { margin: 10px 0 5px; font-size: 18px; border-bottom: 2px solid #333; }
-    .stat-row { display: flex; border-bottom: 1px solid #eee; padding: 2px 0; }
-    .stat-label { font-weight: bold; width: 70px; color: #666; flex-shrink: 0; }
     .st-main-title { font-size: 1.4em; font-weight: bold; margin-bottom: 2px; display: block; }
     .st-main-subtitle { font-size: 1.1em; color: #555; margin-bottom: 10px; display: block; }
-    
+    .stat-row { display: flex; border-bottom: 1px solid #eee; padding: 2px 0; }
+    .stat-label { font-weight: bold; width: 70px; color: #666; flex-shrink: 0; }
     .density-graph-container { background: #1a1a1a; margin-top: 15px; padding: 10px 5px 0 0; border-radius: 4px; text-align: left; overflow: hidden; }
     .density-graph-container h3 { color: #fff; margin: 0 0 8px 10px; font-size: 14px; border-left: 4px solid #f33; padding-left: 8px; }
     #density-svg-wrapper { width: 100%; display: block; }
@@ -66,7 +53,6 @@
     </div>
     <div class="area-errors"><div class="errors">No error</div></div>
   </section>
-
   <section class="pane-right">
     <div class="area-pages">
       <div class="page page-preview"></div>
@@ -79,8 +65,7 @@
         <div class="stat-row"><span class="stat-label">ノーツ数</span><span id="st-notes"></span></div>
         <div class="stat-row"><span class="stat-label">演奏時間</span><span id="st-time"></span></div>
         <div class="stat-row"><span class="stat-label">平均密度</span><span id="st-density"></span></div>
-        <div class="stat-row"><span class="stat-label">連打秒数</span><span id="st-renda" style="font-size: 0.9em; word-break: break-all;"></span></div>
-        
+        <div class="stat-row" style="flex-direction: column;"><span class="stat-label">連打秒数</span><span id="st-renda" style="font-size: 1em; line-height: 1.6; white-space: pre-wrap;"></span></div>
         <div class="density-graph-container">
           <h3>平均密度の推移</h3>
           <div id="density-svg-wrapper"><svg id="density-svg" class="stat-graph"></svg></div>
@@ -101,12 +86,10 @@
   <div class="button-group controls-page">
     <span class="button btn-page-preview is-active" data-value='preview'>プレビュー</span>
     <span class="button btn-page-statistics" data-value='statistics'>情報</span>
-    <!-- iOSでも選択できるようにacceptを変更、PNGとOPENの位置を入れ替え -->
     <button class="button" style="background:#6c757d; color:white; border:none;" id="btn-open">読込</button>
     <button class="button" style="background:#28a745; color:white; border:none;" id="btn-tja-save">TJA</button>
     <button class="button" style="background:#28a745; color:white; border:none;" id="btn-save">PNG</button>
-    <!-- iOS対策として accept 属性を拡張し、さらに汎用的なフィルタを追加 -->
-    <input type="file" id="file-input" class="is-hidden" accept=".tja, .zip, text/plain, application/zip">
+    <input type="file" id="file-input" class="is-hidden" accept="*/*">
     <div style="margin-left:auto; display:flex; gap:2px;">
         <button class="button" id="zoom-out" style="width:34px;">－</button>
         <button class="button" id="zoom-in" style="width:34px;">＋</button>
@@ -123,7 +106,7 @@ const ROW_OFFSET_NOTE_CENTER = ROW_HEIGHT_INFO + (ROW_HEIGHT_NOTE / 2), ROW_LEAD
 const getNoteX = (beat) => ROW_LEADING + (beat * BEAT_WIDTH);
 const getRowY = (row) => CHART_PADDING_TOP + ((ROW_HEIGHT + ROW_MARGIN_BOTTOM) * row);
 
-/** 文字コード判別読み込み **/
+/** 文字コード判別 **/
 async function loadFileWithEncoding(arrayBuffer) {
     const ui8 = new Uint8Array(arrayBuffer);
     try { return new TextDecoder('utf-8', {fatal: true}).decode(ui8); } 
@@ -164,7 +147,7 @@ function parseTJA(tja) {
   return { headers, courses };
 }
 
-/** 描画ヘルパー **/
+/** 描画メイン **/
 const drawLine = (ctx, sx, sy, ex, ey, w, s) => { ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.lineWidth = w; ctx.strokeStyle = s; ctx.stroke(); };
 const drawRect = (ctx, x, y, w, h, f) => { ctx.fillStyle = f; ctx.fillRect(x, y, w, h); };
 const drawCircle = (ctx, x, y, r, f) => { ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI); ctx.fillStyle = f; ctx.fill(); };
@@ -335,7 +318,7 @@ function updateUI() {
       u('#st-diff').text(`${dNames[c.course]} ★${c.headers.level}`);
       let bStr = s.minBpm === s.maxBpm ? `${s.minBpm}` : `${s.minBpm}-${s.maxBpm} (${s.mainBpm})`;
       u('#st-bpm').text(bStr); u('#st-notes').text(s.combo); u('#st-time').text(s.perfTime.toFixed(2) + "s"); u('#st-density').text(s.density.toFixed(3) + " /s");
-      const rHtml = s.rendas.map(r => r.toFixed(2) + "s").join(" + ") + (s.rendas.length ? `<br><br>(合計: ${s.rendas.reduce((a,b)=>a+b,0).toFixed(2)}s)` : "0.00s");
+      const rHtml = s.rendas.map(r => r.toFixed(2) + "s").join(" + ") + (s.rendas.length ? `<br>(合計: ${s.rendas.reduce((a,b)=>a+b,0).toFixed(2)}s)` : "0.00s");
       u('#st-renda').html(rHtml); drawDensityGraph(s.measures);
     }
   }
@@ -354,13 +337,14 @@ u('#file-input').on('change', async (e) => {
     const f = e.target.files[0]; if(!f) return;
     try {
         let content = "";
-        if (f.name.toLowerCase().endsWith('.zip')) {
-            const zip = await JSZip.loadAsync(f);
+        const ab = await f.arrayBuffer();
+        try {
+            const zip = await JSZip.loadAsync(ab);
             const tjaFile = Object.values(zip.files).find(file => file.name.toLowerCase().endsWith('.tja'));
             if (!tjaFile) throw new Error(".tjaファイルが見つかりません");
             content = await loadFileWithEncoding(await tjaFile.async("arraybuffer"));
-        } else {
-            content = await loadFileWithEncoding(await f.arrayBuffer());
+        } catch(zipErr) {
+            content = await loadFileWithEncoding(ab);
         }
         u('.input').first().value = content; process();
     } catch(err) { u('.errors').text(err.message); }
@@ -375,9 +359,9 @@ u('#btn-tja-save').on('click', () => {
   if (!tjaParsed) return;
   const text = u('.input').first().value;
   const sjisArray = Encoding.convert(Encoding.stringToCode(text), 'SJIS', 'UNICODE');
-  const blob = new Blob([new Uint8Array(sjisArray)], { type: 'text/plain' });
+  const blob = new Blob([new Uint8Array(sjisArray)], { type: 'application/octet-stream' });
   const wave = tjaParsed.headers.wave || "chart.tja";
-  const name = wave.split('.')[0] + ".tja";
+  let name = wave.split('.')[0] + ".tja";
   const link = document.createElement('a'); link.download = name; link.href = URL.createObjectURL(blob); link.click();
 });
 u('.controls-diff .button[data-value]').on('click', e => { selectedDifficulty = u(e.target).data('value'); updateUI(); });
