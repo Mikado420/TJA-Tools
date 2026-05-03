@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TJA Tools - Definitive Fidelity Edition</title>
+  <title>TJA Tools - Definitive Side-by-Side</title>
   <script src="https://unpkg.com/umbrellajs@3.3.0/umbrella.min.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -16,31 +16,45 @@
     * { box-sizing: border-box; }
     html, body { width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0; font-family: sans-serif; background: #222; }
     body { display: flex; flex-direction: column; }
+
     .pane-main { flex: 1; display: flex; flex-direction: row; overflow: hidden; border-bottom: 1px solid #000; }
     .pane-left { flex: 1; display: flex; flex-direction: column; background: #fff; border-right: 1px solid #000; min-width: 0; }
     .pane-right { flex: 1; display: flex; flex-direction: column; background: #eee; position: relative; min-width: 0; }
+
     .area-editor { flex: 1; display: flex; flex-direction: column; padding: 4px; }
-    .area-editor .input { flex: 1; width: 100%; font-family: monospace; font-size: 11px; resize: none; padding: 10px; border: 1px solid #ccc; outline: none; }
+    .area-editor .input { 
+      flex: 1; width: 100%; font-family: monospace; font-size: 11px;
+      resize: none; padding: 10px; border: 1px solid #ccc; outline: none;
+    }
+    
+    .area-errors { background: #fee; font-size: 10px; color: #d00; padding: 1px 8px; border-top: 1px solid #fcc; flex-shrink: 0; }
+
     .area-footer { flex-shrink: 0; background: #fafafa; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
     .button-group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-    .button { padding: 6px 10px; background: #fff; border: 1px solid #aaa; font-size: 12px; border-radius: 4px; cursor: pointer; color: #333; text-decoration: none; }
+    .button { 
+      padding: 6px 10px; background: #fff; border: 1px solid #aaa; font-size: 12px; border-radius: 4px;
+      cursor: pointer; color: #333; text-align: center; text-decoration: none;
+    }
     .button.is-active { background: #007bff; color: #fff; border-color: #0056b3; font-weight: bold; }
-    .area-pages { flex: 1; overflow: auto; padding: 5px; -webkit-overflow-scrolling: touch; text-align: center; }
+
+    .area-pages { flex: 1; overflow: auto; padding: 5px; -webkit-overflow-scrolling: touch; }
     .page-preview { transition: width 0.1s ease; margin: 0 auto; width: 100%; display: inline-block; }
     canvas { background: #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.2); width: 100% !important; height: auto !important; display: block; margin: 0 auto; }
-    .area-errors { background: #fee; font-size: 10px; color: #d00; padding: 2px 8px; border-top: 1px solid #fcc; flex-shrink: 0; }
-    .is-hidden { display: none; }
-    /* Stats Layout */
+
     .page-statistics { background: #fff; padding: 8px; text-align: left; border-radius: 4px; height: 100%; overflow-y: auto; font-size: 12px; line-height: 1.4; }
-    .st-main-title { font-size: 1.4em; font-weight: bold; margin-bottom: 2px; display: block; }
-    .st-main-subtitle { font-size: 1.1em; color: #555; margin-bottom: 10px; display: block; }
+    .page-statistics h2 { margin: 10px 0 5px; font-size: 18px; border-bottom: 2px solid #333; }
     .stat-row { display: flex; border-bottom: 1px solid #eee; padding: 2px 0; }
     .stat-label { font-weight: bold; width: 70px; color: #666; flex-shrink: 0; }
+    .st-main-title { font-size: 1.4em; font-weight: bold; margin-bottom: 2px; display: block; }
+    .st-main-subtitle { font-size: 1.1em; color: #555; margin-bottom: 10px; display: block; }
+    
     .density-graph-container { background: #1a1a1a; margin-top: 15px; padding: 10px 5px 0 0; border-radius: 4px; text-align: left; overflow: hidden; }
     .density-graph-container h3 { color: #fff; margin: 0 0 8px 10px; font-size: 14px; border-left: 4px solid #f33; padding-left: 8px; }
     #density-svg-wrapper { width: 100%; display: block; }
     .stat-graph line { stroke: #333; }
     .stat-graph text { fill: #aaa; font-size: 10px; font-family: monospace; }
+    
+    .is-hidden { display: none; }
   </style>
 </head>
 <body>
@@ -53,6 +67,7 @@
     </div>
     <div class="area-errors"><div class="errors">No error</div></div>
   </section>
+
   <section class="pane-right">
     <div class="area-pages">
       <div class="page page-preview"></div>
@@ -66,6 +81,7 @@
         <div class="stat-row"><span class="stat-label">演奏時間</span><span id="st-time"></span></div>
         <div class="stat-row"><span class="stat-label">平均密度</span><span id="st-density"></span></div>
         <div class="stat-row" style="flex-direction: column;"><span class="stat-label">連打秒数</span><span id="st-renda" style="font-size: 1em; line-height: 1.6; white-space: pre-wrap;"></span></div>
+        
         <div class="density-graph-container">
           <h3>平均密度の推移</h3>
           <div id="density-svg-wrapper"><svg id="density-svg" class="stat-graph"></svg></div>
@@ -105,6 +121,44 @@ const ROW_OFFSET_NOTE_CENTER = ROW_HEIGHT_INFO + (ROW_HEIGHT_NOTE / 2), ROW_LEAD
 
 const getNoteX = (beat) => ROW_LEADING + (beat * BEAT_WIDTH);
 const getRowY = (row) => CHART_PADDING_TOP + ((ROW_HEIGHT + ROW_MARGIN_BOTTOM) * row);
+
+/** mc2tja 統合ロジック **/
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+const lcm = (a, b) => (a === 0 || b === 0) ? 0 : Math.abs(a * b) / gcd(a, b);
+const formatBpm = (val) => Math.round(val * 1000) / 1000;
+
+function convertMCtoTJA(mcContent) {
+    const mc = JSON.parse(mcContent);
+    let tja = "";
+    const balloons = mc.note.filter(n => n.style === 6 && n.hits).map(n => n.hits).join(',');
+    const demoStartValue = mc.meta && mc.meta.preview ? (mc.meta.preview / 1000).toFixed(3) : "0";
+    const initialBpm = (mc.time && mc.time[0]) ? mc.time[0].bpm : 120;
+    tja += `TITLE:${mc.meta.song.title || ""}\n`;
+    tja += `SUBTITLE:--${mc.meta.song.artist || ""}\n`;
+    tja += `BPM:${formatBpm(initialBpm)}\n`;
+    tja += `WAVE:${mc.note.find(n => n.sound)?.sound || ""}\n`;
+    tja += `OFFSET:${((mc.note.find(n => n.sound)?.offset || 0) / -1000).toFixed(3)}\n`;
+    tja += `DEMOSTART:${demoStartValue}\n\n`;
+    tja += `COURSE:Oni\nLEVEL:${mc.meta.version ? mc.meta.version.replace(/[^0-9]/g, '') : "10"}\nBALLOON:${balloons}\n\n#START\n`;
+    const barBeats = 4; const notesByBar = {}; const bpmChangesByBar = {}; let maxBarIdx = 0;
+    mc.note.forEach(n => { if (n.hasOwnProperty('column')) { const tb = n.beat[0] + (n.beat[1] / n.beat[2]); const bi = Math.floor(tb / barBeats); if (!notesByBar[bi]) notesByBar[bi] = []; notesByBar[bi].push(n); maxBarIdx = Math.max(maxBarIdx, bi); } });
+    if (mc.time) { mc.time.forEach((t, i) => { if (i === 0) return; const tb = t.beat[0] + (t.beat[1] / t.beat[2]); const bi = Math.floor(tb / barBeats); if (!bpmChangesByBar[bi]) bpmChangesByBar[bi] = []; bpmChangesByBar[bi].push(t); maxBarIdx = Math.max(maxBarIdx, bi); }); }
+    for (let b = 0; b <= maxBarIdx; b++) {
+        const cn = notesByBar[b] || []; const cb = bpmChangesByBar[b] || []; let barLCM = 1;
+        cn.forEach(n => { const bib = n.beat[0] % barBeats; barLCM = lcm(barLCM, (barBeats * n.beat[2]) / gcd(bib * n.beat[2] + n.beat[1], barBeats * n.beat[2])); });
+        cb.forEach(t => { const bib = t.beat[0] % barBeats; barLCM = lcm(barLCM, (barBeats * t.beat[2]) / gcd(bib * t.beat[2] + t.beat[1], barBeats * t.beat[2])); });
+        const bChars = new Array(barLCM).fill('0'); const bTicks = {};
+        cb.forEach(t => { const bib = t.beat[0] % barBeats; const pos = Math.round(((bib + (t.beat[1] / t.beat[2])) / barBeats) * barLCM); bTicks[pos] = `#BPMCHANGE ${formatBpm(t.bpm)}`; });
+        cn.forEach(n => { const bib = n.beat[0] % barBeats; const pos = Math.round(((bib + (n.beat[1] / n.beat[2])) / barBeats) * barLCM);
+            let type = "1"; if (n.style === 2) type = "2"; if (n.style === 1) type = "3"; if (n.style === 3) type = "4"; if (n.style === 4) type = "5"; if (n.style === 6) type = "7";
+            if (pos < barLCM) bChars[pos] = type;
+            if (n.endbeat) { const etb = n.endbeat[0] + (n.endbeat[1] / n.endbeat[2]); if (Math.floor(etb / barBeats) === b) { const ebib = n.endbeat[0] % barBeats; const epos = Math.round(((ebib + (n.endbeat[1] / n.endbeat[2])) / barBeats) * barLCM); if (epos < barLCM) bChars[epos] = "8"; } }
+        });
+        let bOut = ""; for (let i = 0; i < barLCM; i++) { if (bTicks[i]) bOut += (bOut === "" ? "" : "\n") + bTicks[i] + "\n"; bOut += bChars[i]; }
+        tja += bOut + ",\n";
+    }
+    tja += "#END"; return tja;
+}
 
 /** 文字コード判別 **/
 async function loadFileWithEncoding(arrayBuffer) {
@@ -147,7 +201,7 @@ function parseTJA(tja) {
   return { headers, courses };
 }
 
-/** 描画メイン **/
+/** 描画ヘルパー **/
 const drawLine = (ctx, sx, sy, ex, ey, w, s) => { ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.lineWidth = w; ctx.strokeStyle = s; ctx.stroke(); };
 const drawRect = (ctx, x, y, w, h, f) => { ctx.fillStyle = f; ctx.fillRect(x, y, w, h); };
 const drawCircle = (ctx, x, y, r, f) => { ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI); ctx.fillStyle = f; ctx.fill(); };
@@ -318,7 +372,7 @@ function updateUI() {
       u('#st-diff').text(`${dNames[c.course]} ★${c.headers.level}`);
       let bStr = s.minBpm === s.maxBpm ? `${s.minBpm}` : `${s.minBpm}-${s.maxBpm} (${s.mainBpm})`;
       u('#st-bpm').text(bStr); u('#st-notes').text(s.combo); u('#st-time').text(s.perfTime.toFixed(2) + "s"); u('#st-density').text(s.density.toFixed(3) + " /s");
-      const rHtml = s.rendas.map(r => r.toFixed(2) + "s").join(" + ") + (s.rendas.length ? `<br>(合計: ${s.rendas.reduce((a,b)=>a+b,0).toFixed(2)}s)` : "0.00s");
+      const rHtml = s.rendas.map(r => r.toFixed(2) + "s").join(" + ") + (s.rendas.length ? `<br><br>(合計: ${s.rendas.reduce((a,b)=>a+b,0).toFixed(2)}s)` : "0.00s");
       u('#st-renda').html(rHtml); drawDensityGraph(s.measures);
     }
   }
@@ -336,17 +390,19 @@ u('#btn-open').on('click', () => u('#file-input').first().click());
 u('#file-input').on('change', async (e) => {
     const f = e.target.files[0]; if(!f) return;
     try {
-        let content = "";
-        const ab = await f.arrayBuffer();
+        let content = ""; const ab = await f.arrayBuffer();
         try {
-            const zip = await JSZip.loadAsync(ab);
-            const tjaFile = Object.values(zip.files).find(file => file.name.toLowerCase().endsWith('.tja'));
-            if (!tjaFile) throw new Error(".tjaファイルが見つかりません");
-            content = await loadFileWithEncoding(await tjaFile.async("arraybuffer"));
-        } catch(zipErr) {
-            content = await loadFileWithEncoding(ab);
-        }
-        u('.input').first().value = content; process();
+            if (f.name.toLowerCase().endsWith('.mc')) { content = convertMCtoTJA(await loadFileWithEncoding(ab)); }
+            else if (f.name.toLowerCase().endsWith('.zip')) {
+                const zip = await JSZip.loadAsync(ab);
+                const tjaFile = Object.values(zip.files).find(file => file.name.toLowerCase().endsWith('.tja') || file.name.toLowerCase().endsWith('.mc'));
+                if (!tjaFile) throw new Error("譜面ファイルが見つかりません");
+                const buf = await tjaFile.async("arraybuffer");
+                if (tjaFile.name.toLowerCase().endsWith('.mc')) content = convertMCtoTJA(await loadFileWithEncoding(buf));
+                else content = await loadFileWithEncoding(buf);
+            } else { content = await loadFileWithEncoding(ab); }
+            u('.input').first().value = content; process();
+        } catch(err) { u('.errors').text(err.message); }
     } catch(err) { u('.errors').text(err.message); }
 });
 u('#zoom-in').on('click', (e) => { e.preventDefault(); zoomLevel += 20; updateUI(); });
