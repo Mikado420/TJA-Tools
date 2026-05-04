@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TJA Tools - Definitive Side-by-Side</title>
+  <title>TJA Tools - Definitive Performance Edition</title>
   <script src="https://unpkg.com/umbrellajs@3.3.0/umbrella.min.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -21,10 +21,10 @@
     .pane-left { flex: 1; display: flex; flex-direction: column; background: #fff; border-right: 1px solid #000; min-width: 0; }
     .pane-right { flex: 1; display: flex; flex-direction: column; background: #eee; position: relative; min-width: 0; }
 
-    .area-editor { flex: 1; display: flex; flex-direction: column; padding: 4px; }
+    .area-editor { flex: 1; display: flex; flex-direction: column; padding: 4px; overscroll-behavior: contain; }
     .area-editor .input { 
       flex: 1; width: 100%; font-family: monospace; font-size: 11px;
-      resize: none; padding: 10px; border: 1px solid #ccc; outline: none;
+      resize: none; padding: 10px; border: 1px solid #ccc; outline: none; line-height: 1.5; overscroll-behavior: contain;
     }
     
     .area-errors { background: #fee; font-size: 10px; color: #d00; padding: 1px 8px; border-top: 1px solid #fcc; flex-shrink: 0; }
@@ -33,7 +33,7 @@
     .button-group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
     .button { 
       padding: 6px 10px; background: #fff; border: 1px solid #aaa; font-size: 12px; border-radius: 4px;
-      cursor: pointer; color: #333; text-align: center; text-decoration: none;
+      cursor: pointer; color: #333; text-align: center; display: inline-block; text-decoration: none;
     }
     .button.is-active { background: #007bff; color: #fff; border-color: #0056b3; font-weight: bold; }
 
@@ -41,19 +41,16 @@
     .page-preview { transition: width 0.1s ease; margin: 0 auto; width: 100%; display: inline-block; }
     canvas { background: #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.2); width: 100% !important; height: auto !important; display: block; margin: 0 auto; }
 
-    .page-statistics { background: #fff; padding: 8px; text-align: left; border-radius: 4px; height: 100%; overflow-y: auto; font-size: 12px; line-height: 1.4; }
-    .page-statistics h2 { margin: 10px 0 5px; font-size: 18px; border-bottom: 2px solid #333; }
+    .page-statistics, .page-gradation { background: #fff; padding: 8px; text-align: left; border-radius: 4px; height: 100%; overflow-y: auto; font-size: 12px; line-height: 1.4; }
+    .page-statistics h2, .page-gradation h2 { margin: 10px 0 5px; font-size: 18px; border-bottom: 2px solid #333; }
     .stat-row { display: flex; border-bottom: 1px solid #eee; padding: 2px 0; }
     .stat-label { font-weight: bold; width: 70px; color: #666; flex-shrink: 0; }
     .st-main-title { font-size: 1.4em; font-weight: bold; margin-bottom: 2px; display: block; }
     .st-main-subtitle { font-size: 1.1em; color: #555; margin-bottom: 10px; display: block; }
     
-    .density-graph-container { background: #1a1a1a; margin-top: 15px; padding: 10px 5px 0 0; border-radius: 4px; text-align: left; overflow: hidden; }
-    .density-graph-container h3 { color: #fff; margin: 0 0 8px 10px; font-size: 14px; border-left: 4px solid #f33; padding-left: 8px; }
-    #density-svg-wrapper { width: 100%; display: block; }
-    .stat-graph line { stroke: #333; }
-    .stat-graph text { fill: #aaa; font-size: 10px; font-family: monospace; }
-    
+    .grad-guide { margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px; font-size: 11px; color: #333; border: 1px solid #ddd; }
+    .grad-guide code { background: #e9ecef; padding: 1px 3px; border-radius: 2px; font-family: monospace; font-weight: bold; }
+
     .is-hidden { display: none; }
   </style>
 </head>
@@ -81,10 +78,28 @@
         <div class="stat-row"><span class="stat-label">演奏時間</span><span id="st-time"></span></div>
         <div class="stat-row"><span class="stat-label">平均密度</span><span id="st-density"></span></div>
         <div class="stat-row" style="flex-direction: column;"><span class="stat-label">連打秒数</span><span id="st-renda" style="font-size: 1em; line-height: 1.6; white-space: pre-wrap;"></span></div>
+        <div id="density-svg-wrapper" style="background:#1a1a1a; margin-top:10px; border-radius:4px; padding:5px;"><svg id="density-svg" style="display:block; margin-left:-10px;"></svg></div>
+      </div>
+      <div class="page page-gradation is-hidden">
+        <h2>グラデーション設定</h2>
+        <div id="grad-list" style="margin-bottom:10px; font-size:11px; color:#555;">独自コマンドを解析します</div>
+        <button class="button" id="btn-grad-replace" style="width:100%; background:#007bff; color:white;">#SCROLLを置換</button>
         
-        <div class="density-graph-container">
-          <h3>平均密度の推移</h3>
-          <div id="density-svg-wrapper"><svg id="density-svg" class="stat-graph"></svg></div>
+        <div class="grad-guide">
+          <strong>【独自コマンド解説】</strong><br>
+          <code>#GRADSTART [開始] [終了] (a[加速度])</code><br>
+          <code>... 音符データ ...</code><br>
+          <code>#GRADEND</code><br>
+          <br>
+          <strong>■等差モード</strong><br>
+          aを指定しない場合。一定の割合で変化します。<br>
+          <br>
+          <strong>■等比モード</strong><br>
+          aの後に数値を指定。等比数列的に変化します。<br>
+          例: <code>#GRADSTART 1.0 2.0 a1.5</code><br>
+          <br>
+          <strong>※仕様</strong><br>
+          ・終点（#GRADEND）の次の小節頭に終了値を配置します。
         </div>
       </div>
     </div>
@@ -102,6 +117,7 @@
   <div class="button-group controls-page">
     <span class="button btn-page-preview is-active" data-value='preview'>プレビュー</span>
     <span class="button btn-page-statistics" data-value='statistics'>情報</span>
+    <span class="button btn-page-gradation" data-value='gradation'>グラデ</span>
     <button class="button" style="background:#6c757d; color:white; border:none;" id="btn-open">読込</button>
     <button class="button" style="background:#28a745; color:white; border:none;" id="btn-tja-save">TJA</button>
     <button class="button" style="background:#28a745; color:white; border:none;" id="btn-save">PNG</button>
@@ -114,6 +130,9 @@
 </footer>
 
 <script>
+/** 共通BPM整形関数 **/
+const formatBpm = (val) => Math.round(val * 1000) / 1000;
+
 /** 定数 **/
 const CHART_PADDING_TOP = 130, CHART_PADDING_BOTTOM = 20, CHART_BG = '#cccccc';
 const ROW_MARGIN_BOTTOM = 20, ROW_HEIGHT_INFO = 18, ROW_HEIGHT_NOTE = 34, ROW_HEIGHT = ROW_HEIGHT_INFO + ROW_HEIGHT_NOTE;
@@ -122,24 +141,15 @@ const ROW_OFFSET_NOTE_CENTER = ROW_HEIGHT_INFO + (ROW_HEIGHT_NOTE / 2), ROW_LEAD
 const getNoteX = (beat) => ROW_LEADING + (beat * BEAT_WIDTH);
 const getRowY = (row) => CHART_PADDING_TOP + ((ROW_HEIGHT + ROW_MARGIN_BOTTOM) * row);
 
-/** mc2tja 統合ロジック **/
+/** mc2tja **/
 const gcd = (a, b) => b ? gcd(b, a % b) : a;
 const lcm = (a, b) => (a === 0 || b === 0) ? 0 : Math.abs(a * b) / gcd(a, b);
-const formatBpm = (val) => Math.round(val * 1000) / 1000;
 
 function convertMCtoTJA(mcContent) {
-    const mc = JSON.parse(mcContent);
-    let tja = "";
+    const mc = JSON.parse(mcContent); let tja = "";
     const balloons = mc.note.filter(n => n.style === 6 && n.hits).map(n => n.hits).join(',');
-    const demoStartValue = mc.meta && mc.meta.preview ? (mc.meta.preview / 1000).toFixed(3) : "0";
     const initialBpm = (mc.time && mc.time[0]) ? mc.time[0].bpm : 120;
-    tja += `TITLE:${mc.meta.song.title || ""}\n`;
-    tja += `SUBTITLE:--${mc.meta.song.artist || ""}\n`;
-    tja += `BPM:${formatBpm(initialBpm)}\n`;
-    tja += `WAVE:${mc.note.find(n => n.sound)?.sound || ""}\n`;
-    tja += `OFFSET:${((mc.note.find(n => n.sound)?.offset || 0) / -1000).toFixed(3)}\n`;
-    tja += `DEMOSTART:${demoStartValue}\n\n`;
-    tja += `COURSE:Oni\nLEVEL:${mc.meta.version ? mc.meta.version.replace(/[^0-9]/g, '') : "10"}\nBALLOON:${balloons}\n\n#START\n`;
+    tja += `TITLE:${mc.meta.song.title || ""}\nSUBTITLE:--${mc.meta.song.artist || ""}\nBPM:${formatBpm(initialBpm)}\nWAVE:${mc.note.find(n => n.sound)?.sound || ""}\nOFFSET:${((mc.note.find(n => n.sound)?.offset || 0) / -1000).toFixed(3)}\nDEMOSTART:${mc.meta && mc.meta.preview ? (mc.meta.preview / 1000).toFixed(3) : "0"}\n\nCOURSE:Oni\nLEVEL:${mc.meta.version ? mc.meta.version.replace(/[^0-9]/g, '') : "10"}\nBALLOON:${balloons}\n\n#START\n`;
     const barBeats = 4; const notesByBar = {}; const bpmChangesByBar = {}; let maxBarIdx = 0;
     mc.note.forEach(n => { if (n.hasOwnProperty('column')) { const tb = n.beat[0] + (n.beat[1] / n.beat[2]); const bi = Math.floor(tb / barBeats); if (!notesByBar[bi]) notesByBar[bi] = []; notesByBar[bi].push(n); maxBarIdx = Math.max(maxBarIdx, bi); } });
     if (mc.time) { mc.time.forEach((t, i) => { if (i === 0) return; const tb = t.beat[0] + (t.beat[1] / t.beat[2]); const bi = Math.floor(tb / barBeats); if (!bpmChangesByBar[bi]) bpmChangesByBar[bi] = []; bpmChangesByBar[bi].push(t); maxBarIdx = Math.max(maxBarIdx, bi); }); }
@@ -160,7 +170,6 @@ function convertMCtoTJA(mcContent) {
     tja += "#END"; return tja;
 }
 
-/** 文字コード判別 **/
 async function loadFileWithEncoding(arrayBuffer) {
     const ui8 = new Uint8Array(arrayBuffer);
     try { return new TextDecoder('utf-8', {fatal: true}).decode(ui8); } 
@@ -180,7 +189,7 @@ function parseTJA(tja) {
     else if (raw.startsWith('WAVE:')) headers.wave = raw.substring(5).trim();
     else if (raw.startsWith('COURSE:')) {
       const cv = raw.substring(7).trim().toLowerCase();
-      let id = (cv === 'normal' || cv === '1') ? 1 : (cv === 'hard' || cv === '2') ? 2 : (cv === 'oni' || cv === '3') ? 3 : (cv === 'edit' || cv === '4') ? 4 : 0;
+      let id = 0; if (cv === 'normal' || cv === '1') id = 1; else if (cv === 'hard' || cv === '2') id = 2; else if (cv === 'oni' || cv === '3') id = 3; else if (cv === 'edit' || cv === '4') id = 4;
       currentCourse = { course: id, headers: { level: 0, balloon: [], ttRowBeat: 16 }, measures: [] };
       courses[id] = currentCourse; dataBuf = ""; eventBuf = [];
     } else if (currentCourse) {
@@ -265,10 +274,10 @@ function drawChart(chart, courseId) {
     let bAcc = 0;
     row.measures.forEach((m, mi) => {
       const mb = (m.length[0]/m.length[1])*4;
-      for(let g=0; g<mb; g+=0.5) { const gx = getNoteX(bAcc + g); drawLine(ctx, gx, y+ROW_HEIGHT_INFO, gx, y+ROW_HEIGHT, g%1===0 ? 1 : 0.5, '#ffffff66'); }
+      for(let g=0; g<mb; g+=0.5) { const gx = getNoteX(bAcc + g); drawLine(ctx, gx, y+ROW_HEIGHT_INFO, gx, y+ROW_HEIGHT, g%1===0 ? 0.8 : 0.4, '#ffffff66'); }
       drawLine(ctx, getNoteX(bAcc), y, getNoteX(bAcc), y + ROW_HEIGHT, 1.2, '#fff');
       drawPixelText(ctx, getNoteX(bAcc) + 2, y + 17, (mi + 1 + rows.slice(0,ri).reduce((a,b)=>a+b.measures.length,0)).toString(), '#000', 'bottom', 'left');
-      if(ri === 0 && mi === 0) drawPixelText(ctx, getNoteX(bAcc) + 2, y + 11, chart.headers.bpm.toString(), '#00f', 'bottom', 'left');
+      if(ri === 0 && mi === 0) drawPixelText(ctx, getNoteX(bAcc) + 2, y + 11, formatBpm(chart.headers.bpm).toString(), '#00f', 'bottom', 'left');
       m.events.forEach(e => {
         if (e.name === 'bpmchange' || e.name === 'scroll') {
           const ex = getNoteX(bAcc + (mb / (m.data.length || 1)) * e.pos); drawLine(ctx, ex, y, ex, y + ROW_HEIGHT, 1, '#444');
@@ -312,7 +321,6 @@ function getStats(chart, courseId) {
   let bpmMap = new Map(); let bpms = [currentBpm];
   let currentTime = 0, allNoteTimes = [], rendaSecs = [];
   let rStartT = null;
-
   course.measures.forEach((m) => {
     const mb = (m.length[0] / m.length[1]) * 4; const nis = m.data.length || 1; const duration = (60 / currentBpm) * mb;
     for (let i = 0; i < m.data.length; i++) {
@@ -327,7 +335,6 @@ function getStats(chart, courseId) {
     m.events.forEach(e => { if(e.name === 'bpmchange') { currentBpm = parseFloat(e.value); bpms.push(currentBpm); } });
     currentTime += duration;
   });
-
   const perfTime = lastT - firstT;
   let measureData = [];
   for (let i = 0; i < 100; i++) {
@@ -351,6 +358,50 @@ function drawDensityGraph(measureData) {
      .selectAll("rect").data(d => d).enter().append("rect").attr("x", (d, i) => x(i)).attr("y", d => y(d[1])).attr("height", d => y(d[0]) - y(d[1])).attr("width", x.bandwidth());
 }
 
+/** グラデーション置換ロジック **/
+function replaceGradation() {
+    const editor = u('.input').first(); const val = editor.value; const chart = parseTJA(val);
+    const courseId = selectedDifficulty || Object.keys(chart.courses)[0]; const course = chart.courses[courseId];
+    if (!course) return;
+    let currentBpm = chart.headers.bpm, currentTime = 0; const mTimings = [];
+    course.measures.forEach(m => { mTimings.push({ start: currentTime, bpm: currentBpm }); const mb = 4;
+        m.events.forEach(e => { if(e.name === 'bpmchange') currentBpm = parseFloat(e.value); });
+        currentTime += (60/currentBpm)*mb;
+    });
+    mTimings.push({ start: currentTime, bpm: currentBpm });
+    const regex = /#GRADSTART\s+([^\n]+)\n([\s\S]+?)\n#GRADEND/g;
+    const newText = val.replace(regex, (match, args, content) => {
+        const parts = args.trim().split(/\s+/); let sHS = parseFloat(parts[0]), eHS = parseFloat(parts[1]);
+        let hasAccel = parts[2] && parts[2].toLowerCase().startsWith('a');
+        let accel = hasAccel ? parseFloat(parts[2].substring(1)) : 1.0;
+        if (hasAccel) accel = 1 + (accel - 1) * 0.4;
+        const subMeasures = content.split(',').map(s => s.trim()).filter(s => s);
+        let result = "", lastHS = -1; const totalT = mTimings[subMeasures.length].start - mTimings[0].start;
+        subMeasures.forEach((mStr, mi) => {
+            const mBpm = mTimings[mi].bpm, mStart = mTimings[mi].start - mTimings[0].start, mb = 4;
+            const notes = mStr.replace(/#\w+(\s+.+)?/g, "").length || 1;
+            let charIdx = 0;
+            for(let char of mStr) {
+                if("12345679".includes(char)) {
+                    const t = mStart + (mb * charIdx / notes) * (60/mBpm);
+                    const progress = Math.min(1, t / totalT);
+                    let hs = hasAccel ? sHS * Math.pow(eHS/sHS, Math.pow(progress, accel)) : sHS + (eHS - sHS) * progress;
+                    hs = Math.round(hs * 1000) / 1000;
+                    if(hs !== lastHS) { 
+                        const hsStr = parseFloat(hs.toFixed(3)).toString();
+                        result += `\n#SCROLL ${hsStr}\n`; 
+                        lastHS = hs; 
+                    }
+                }
+                result += char; if(!"# \n\r".includes(char)) charIdx++;
+            }
+            result += ",\n";
+        });
+        return result.trim() + `\n#SCROLL ${parseFloat(eHS.toFixed(3))}`;
+    });
+    editor.value = newText;
+}
+
 /** UI Logic **/
 let tjaParsed = null, selectedDifficulty = '', selectedPage = 'preview', zoomLevel = 100;
 function updateUI() {
@@ -364,20 +415,18 @@ function updateUI() {
     if (selectedPage === 'preview') {
       u('.page-preview').empty().append(drawChart(tjaParsed, selectedDifficulty));
       u('.page-preview').first().style.width = zoomLevel + '%';
-    } else {
-      const s = getStats(tjaParsed, selectedDifficulty);
-      const dNames = ['かんたん', 'ふつう', 'むずかしい', 'おに', '裏おに'];
-      const c = tjaParsed.courses[selectedDifficulty];
+    } else if (selectedPage === 'statistics') {
+      const s = getStats(tjaParsed, selectedDifficulty); const dNames = ['かんたん','ふつう','むずかしい','おに','裏おに']; const c = tjaParsed.courses[selectedDifficulty];
       u('#st-title').text(tjaParsed.headers.title); u('#st-subtitle').text(tjaParsed.headers.subtitle || '');
       u('#st-diff').text(`${dNames[c.course]} ★${c.headers.level}`);
-      let bStr = s.minBpm === s.maxBpm ? `${s.minBpm}` : `${s.minBpm}-${s.maxBpm} (${s.mainBpm})`;
-      u('#st-bpm').text(bStr); u('#st-notes').text(s.combo); u('#st-time').text(s.perfTime.toFixed(2) + "s"); u('#st-density').text(s.density.toFixed(3) + " /s");
+      u('#st-bpm').text(s.minBpm === s.maxBpm ? `${s.minBpm}` : `${s.minBpm}-${s.maxBpm} (${s.mainBpm})`);
+      u('#st-notes').text(s.combo); u('#st-time').text(s.perfTime.toFixed(2)+"s"); u('#st-density').text(s.density.toFixed(3)+" /s");
       const rHtml = s.rendas.map(r => r.toFixed(2) + "s").join(" + ") + (s.rendas.length ? `<br><br>(合計: ${s.rendas.reduce((a,b)=>a+b,0).toFixed(2)}s)` : "0.00s");
       u('#st-renda').html(rHtml); drawDensityGraph(s.measures);
     }
   }
 }
-const process = () => {
+const processFunc = () => {
   const val = u('.input').first().value; if(!val) return;
   try {
     tjaParsed = parseTJA(val);
@@ -385,24 +434,22 @@ const process = () => {
     updateUI(); u('.errors').text('No error');
   } catch(e) { u('.errors').text(e.message); }
 };
-u('.input').on('input', process);
+u('.input').on('input', processFunc);
 u('#btn-open').on('click', () => u('#file-input').first().click());
 u('#file-input').on('change', async (e) => {
     const f = e.target.files[0]; if(!f) return;
     try {
         let content = ""; const ab = await f.arrayBuffer();
-        try {
-            if (f.name.toLowerCase().endsWith('.mc')) { content = convertMCtoTJA(await loadFileWithEncoding(ab)); }
-            else if (f.name.toLowerCase().endsWith('.zip')) {
-                const zip = await JSZip.loadAsync(ab);
-                const tjaFile = Object.values(zip.files).find(file => file.name.toLowerCase().endsWith('.tja') || file.name.toLowerCase().endsWith('.mc'));
-                if (!tjaFile) throw new Error("譜面ファイルが見つかりません");
-                const buf = await tjaFile.async("arraybuffer");
-                if (tjaFile.name.toLowerCase().endsWith('.mc')) content = convertMCtoTJA(await loadFileWithEncoding(buf));
-                else content = await loadFileWithEncoding(buf);
-            } else { content = await loadFileWithEncoding(ab); }
-            u('.input').first().value = content; process();
-        } catch(err) { u('.errors').text(err.message); }
+        if (f.name.toLowerCase().match(/\.(zip|mcz)$/)) {
+            const zip = await JSZip.loadAsync(ab);
+            const tjaF = Object.values(zip.files).find(file => file.name.toLowerCase().endsWith('.tja') || file.name.toLowerCase().endsWith('.mc'));
+            if (!tjaF) throw new Error("譜面が見つかりません");
+            const buf = await tjaF.async("arraybuffer");
+            content = tjaF.name.endsWith('.mc') ? convertMCtoTJA(await loadFileWithEncoding(buf)) : await loadFileWithEncoding(buf);
+        } else {
+            content = f.name.endsWith('.mc') ? convertMCtoTJA(await loadFileWithEncoding(ab)) : await loadFileWithEncoding(ab);
+        }
+        u('.input').first().value = content; processFunc();
     } catch(err) { u('.errors').text(err.message); }
 });
 u('#zoom-in').on('click', (e) => { e.preventDefault(); zoomLevel += 20; updateUI(); });
@@ -413,13 +460,12 @@ u('#btn-save').on('click', () => {
 });
 u('#btn-tja-save').on('click', () => {
   if (!tjaParsed) return;
-  const text = u('.input').first().value;
-  const sjisArray = Encoding.convert(Encoding.stringToCode(text), 'SJIS', 'UNICODE');
-  const blob = new Blob([new Uint8Array(sjisArray)], { type: 'application/octet-stream' });
-  const wave = tjaParsed.headers.wave || "chart.tja";
-  let name = wave.split('.')[0] + ".tja";
+  const codes = Encoding.convert(Encoding.stringToCode(u('.input').first().value), 'SJIS', 'UNICODE');
+  const blob = new Blob([new Uint8Array(codes)], { type: 'application/octet-stream' });
+  const name = (tjaParsed.headers.wave || "chart.tja").split('.')[0] + ".tja";
   const link = document.createElement('a'); link.download = name; link.href = URL.createObjectURL(blob); link.click();
 });
+u('#btn-grad-replace').on('click', () => { replaceGradation(); processFunc(); });
 u('.controls-diff .button[data-value]').on('click', e => { selectedDifficulty = u(e.target).data('value'); updateUI(); });
 u('.controls-page .button[data-value]').on('click', e => { selectedPage = u(e.target).data('value'); updateUI(); });
 </script>
