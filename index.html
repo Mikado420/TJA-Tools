@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TJA Tools - side-by-side Definitive</title>
+  <title>TJA Tools - Definitive Side-by-Side</title>
   <script src="https://unpkg.com/umbrellajs@3.3.0/umbrella.min.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -16,25 +16,37 @@
     * { box-sizing: border-box; }
     html, body { width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0; font-family: sans-serif; background: #222; }
     body { display: flex; flex-direction: column; }
+
     .pane-main { flex: 1; display: flex; flex-direction: row; overflow: hidden; border-bottom: 1px solid #000; }
     .pane-left { flex: 1; display: flex; flex-direction: column; background: #fff; border-right: 1px solid #000; min-width: 0; }
     .pane-right { flex: 1; display: flex; flex-direction: column; background: #eee; position: relative; min-width: 0; }
+
     .area-editor { flex: 1; display: flex; flex-direction: column; padding: 4px; overscroll-behavior: contain; }
-    .area-editor .input { flex: 1; width: 100%; font-family: monospace; font-size: 11px; resize: none; padding: 10px; border: 1px solid #ccc; outline: none; line-height: 1.5; }
+    .area-editor .input { 
+      flex: 1; width: 100%; font-family: monospace; font-size: 11px; resize: none; padding: 10px; border: 1px solid #ccc; outline: none; line-height: 1.5; 
+    }
+    
     .area-errors { background: #fee; font-size: 10px; color: #d00; padding: 2px 8px; border-top: 1px solid #fcc; flex-shrink: 0; }
+
     .area-footer { flex-shrink: 0; background: #fafafa; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
     .button-group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-    .button { padding: 6px 10px; background: #fff; border: 1px solid #aaa; font-size: 12px; border-radius: 4px; cursor: pointer; color: #333; text-decoration: none; text-align: center; }
+    .button { 
+      padding: 6px 10px; background: #fff; border: 1px solid #aaa; font-size: 12px; border-radius: 4px;
+      cursor: pointer; color: #333; text-align: center; text-decoration: none;
+    }
     .button.is-active { background: #007bff; color: #fff; border-color: #0056b3; font-weight: bold; }
+
     .area-pages { flex: 1; overflow: auto; padding: 5px; -webkit-overflow-scrolling: touch; }
     .page-preview { transition: width 0.1s ease; margin: 0 auto; width: 100%; display: inline-block; }
     canvas { background: #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.2); width: 100% !important; height: auto !important; display: block; margin: 0 auto; }
+
     .page-statistics, .page-gradation { background: #fff; padding: 8px; text-align: left; border-radius: 4px; height: 100%; overflow-y: auto; font-size: 12px; line-height: 1.4; }
     .page-statistics h2, .page-gradation h2 { margin: 10px 0 5px; font-size: 18px; border-bottom: 2px solid #333; }
     .stat-row { display: flex; border-bottom: 1px solid #eee; padding: 2px 0; }
-    .stat-label { font-weight: bold; width: 70px; color: #666; flex-shrink: 0; }
+    .stat-label { font-weight: bold; width: 75px; color: #666; flex-shrink: 0; }
     .st-main-title { font-size: 1.4em; font-weight: bold; margin-bottom: 2px; display: block; }
     .st-main-subtitle { font-size: 1.1em; color: #555; margin-bottom: 10px; display: block; }
+    
     .grad-guide { margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px; font-size: 11px; color: #333; border: 1px solid #ddd; }
     .grad-guide code { background: #e9ecef; padding: 1px 3px; border-radius: 2px; font-family: monospace; font-weight: bold; }
     .is-hidden { display: none; }
@@ -50,6 +62,7 @@
     </div>
     <div class="area-errors"><div class="errors">No error</div></div>
   </section>
+
   <section class="pane-right">
     <div class="area-pages">
       <div class="page page-preview"></div>
@@ -63,12 +76,17 @@
         <div class="stat-row"><span class="stat-label">演奏時間</span><span id="st-time"></span></div>
         <div class="stat-row"><span class="stat-label">平均密度</span><span id="st-density"></span></div>
         <div class="stat-row" style="flex-direction: column;"><span class="stat-label">連打秒数</span><span id="st-renda" style="font-size: 1em; line-height: 1.6; white-space: pre-wrap;"></span></div>
-        <div id="density-svg-wrapper" style="background:#1a1a1a; margin-top:10px; border-radius:4px; padding:5px;"><svg id="density-svg" style="display:block; margin-left:-10px;"></svg></div>
+        
+        <div style="background: #1a1a1a; margin-top: 15px; padding: 10px 5px 0 0; border-radius: 4px; text-align: left; overflow: hidden;">
+          <h3 style="color: #fff; margin: 0 0 8px 10px; font-size: 14px; border-left: 4px solid #f33; padding-left: 8px;">平均密度の推移</h3>
+          <div id="density-svg-wrapper"><svg id="density-svg" style="display:block; margin-left:-10px;"></svg></div>
+        </div>
       </div>
       <div class="page page-gradation is-hidden">
         <h2>グラデーション設定</h2>
         <div id="grad-list" style="margin-bottom:10px; font-size:11px; color:#555;">独自コマンドを解析します</div>
         <button class="button" id="btn-grad-replace" style="width:100%; background:#007bff; color:white;">#SCROLLを置換</button>
+        
         <div class="grad-guide">
           <strong>【独自コマンド解説】</strong><br>
           <code>#GRADSTART [開始] [終了] (a[加速度])</code><br>
@@ -77,7 +95,7 @@
           ■等差: aなし<br>
           ■等比: a1.0〜a2.0推奨<br>
           ※終点の次の小節頭に終了値を配置。<br>
-          ※ブロック内の既存#SCROLLは自動で削除されます。
+          ※ブロック内の既存#SCROLLは自動で削除。
         </div>
       </div>
     </div>
@@ -108,17 +126,23 @@
 </footer>
 
 <script>
-/** 共通BPM整形 **/
+/** 描画定数 **/
+const CHART_PADDING_TOP = 130, CHART_PADDING_BOTTOM = 20, CHART_BG = '#cccccc';
+const ROW_MARGIN_BOTTOM = 20, ROW_HEIGHT_INFO = 18, ROW_HEIGHT_NOTE = 34, ROW_HEIGHT = ROW_HEIGHT_INFO + ROW_HEIGHT_NOTE;
+const ROW_OFFSET_NOTE_CENTER = ROW_HEIGHT_INFO + (ROW_HEIGHT_NOTE / 2), ROW_LEADING = 30, ROW_TRAILING = 30, BEAT_WIDTH = 48, NOTE_RADIUS = 9;
+
+/** ユーティリティ **/
 const formatBpm = (val) => {
     let num = Math.round(val * 1000) / 1000;
     return (num % 1 === 0) ? num.toString() : num.toFixed(3).replace(/\.?0+$/, "");
 };
-const getNoteX = (beat) => 30 + (beat * 48);
-const getRowY = (row) => 130 + (row * 74) + 20;
+const getNoteX = (beat) => ROW_LEADING + (beat * BEAT_WIDTH);
+const getRowY = (row) => CHART_PADDING_TOP + ((ROW_HEIGHT + ROW_MARGIN_BOTTOM) * row);
 
-/** mc2tja **/
 const gcd = (a, b) => b ? gcd(b, a % b) : a;
 const lcm = (a, b) => (a === 0 || b === 0) ? 0 : Math.abs(a * b) / gcd(a, b);
+
+/** mc2tja 統合ロジック **/
 function convertMCtoTJA(mcContent) {
     const mc = JSON.parse(mcContent); let tja = "";
     const balloons = mc.note.filter(n => n.style === 6 && n.hits).map(n => n.hits).join(',');
@@ -129,8 +153,8 @@ function convertMCtoTJA(mcContent) {
     if (mc.time) { mc.time.forEach((t, i) => { if (i === 0) return; const tb = t.beat[0] + (t.beat[1] / t.beat[2]); const bi = Math.floor(tb / barBeats); if (!bpmChangesByBar[bi]) bpmChangesByBar[bi] = []; bpmChangesByBar[bi].push(t); maxBarIdx = Math.max(maxBarIdx, bi); }); }
     for (let b = 0; b <= maxBarIdx; b++) {
         const cn = notesByBar[b] || []; const cb = bpmChangesByBar[b] || []; let bLCM = 1;
-        cn.forEach(n => { const bib = n.beat[0] % barBeats; bLCM = lcm(barLCM, (barBeats * n.beat[2]) / gcd(bib * n.beat[2] + n.beat[1], barBeats * n.beat[2])); });
-        cb.forEach(t => { const bib = t.beat[0] % barBeats; bLCM = lcm(barLCM, (barBeats * t.beat[2]) / gcd(bib * t.beat[2] + t.beat[1], barBeats * t.beat[2])); });
+        cn.forEach(n => { const bib = n.beat[0] % barBeats; bLCM = lcm(bLCM, (barBeats * n.beat[2]) / gcd(bib * n.beat[2] + n.beat[1], barBeats * n.beat[2])); });
+        cb.forEach(t => { const bib = t.beat[0] % barBeats; bLCM = lcm(bLCM, (barBeats * t.beat[2]) / gcd(bib * t.beat[2] + t.beat[1], barBeats * t.beat[2])); });
         const bChars = new Array(bLCM).fill('0'); const bTicks = {};
         cb.forEach(t => { const bib = t.beat[0] % barBeats; const pos = Math.round(((bib + (t.beat[1] / t.beat[2])) / barBeats) * bLCM); bTicks[pos] = `#BPMCHANGE ${formatBpm(t.bpm)}`; });
         cn.forEach(n => { const bib = n.beat[0] % barBeats; const pos = Math.round(((bib + (n.beat[1] / n.beat[2])) / barBeats) * bLCM);
@@ -138,7 +162,7 @@ function convertMCtoTJA(mcContent) {
             if (pos < bLCM) bChars[pos] = type;
             if (n.endbeat) { const etb = n.endbeat[0] + (n.endbeat[1] / n.endbeat[2]); if (Math.floor(etb / barBeats) === b) { const ebib = n.endbeat[0] % barBeats; const epos = Math.round(((ebib + (n.endbeat[1] / n.endbeat[2])) / barBeats) * bLCM); if (epos < bLCM) bChars[epos] = "8"; } }
         });
-        let bOut = ""; for (let i = 0; i < bLCM; i++) { if (bTicks[i]) bOut += (bOut === "" ? "" : "\n") + bTicks[i] + "\n"; bOut += bChars[i]; }
+        let bOut = ""; for (let i = 0; i < barLCM; i++) { if (bTicks[i]) bOut += (bOut === "" ? "" : "\n") + bTicks[i] + "\n"; bOut += bChars[i]; }
         tja += bOut + ",\n";
     }
     tja += "#END"; return tja;
@@ -163,7 +187,7 @@ function parseTJA(tja) {
     else if (raw.startsWith('WAVE:')) headers.wave = raw.substring(5).trim();
     else if (raw.startsWith('COURSE:')) {
       const cv = raw.substring(7).trim().toLowerCase();
-      let id = 0; if (cv === 'normal' || cv === '1') id = 1; else if (cv === 'hard' || cv === '2') id = 2; else if (cv === 'oni' || cv === '3') id = 3; else if (cv === 'edit' || cv === '4') id = 4;
+      let id = (cv === 'normal' || cv === '1') ? 1 : (cv === 'hard' || cv === '2') ? 2 : (cv === 'oni' || cv === '3') ? 3 : (cv === 'edit' || cv === '4') ? 4 : 0;
       currentCourse = { course: id, headers: { level: 0, balloon: [], ttRowBeat: 16 }, measures: [] };
       courses[id] = currentCourse; dataBuf = ""; eventBuf = [];
     } else if (currentCourse) {
@@ -184,7 +208,7 @@ function parseTJA(tja) {
   return { headers, courses };
 }
 
-/** 描画ヘルパー **/
+/** 描画 **/
 const drawLine = (ctx, sx, sy, ex, ey, w, s) => { ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.lineWidth = w; ctx.strokeStyle = s; ctx.stroke(); };
 const drawRect = (ctx, x, y, w, h, f) => { ctx.fillStyle = f; ctx.fillRect(x, y, w, h); };
 const drawCircle = (ctx, x, y, r, f) => { ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI); ctx.fillStyle = f; ctx.fill(); };
@@ -193,17 +217,17 @@ const drawPixelText = (ctx, x, y, t, c, b = 'middle', a = 'center') => { drawTex
 
 function drawNote(ctx, x, y, c, b) { const r = b ? 12 : 9; drawCircle(ctx, x, y, r, '#000'); drawCircle(ctx, x, y, r-1, '#fff'); drawCircle(ctx, x, y, r-2, c); }
 function drawBalloon(ctx, ri, nb, eb, count) {
-  const x = getNoteX(nb), y = getRowY(ri) + 35, ex = getNoteX(eb);
-  ctx.lineCap = 'round'; ctx.strokeStyle = '#000'; ctx.lineWidth = 18; drawLine(ctx, x, y, ex, y, ctx.lineWidth, '#000');
+  const x = getNoteX(nb), y = getRowY(ri) + ROW_OFFSET_NOTE_CENTER, ex = getNoteX(eb);
+  ctx.lineCap = 'round'; ctx.strokeStyle = '#000'; ctx.lineWidth = NOTE_RADIUS * 2; drawLine(ctx, x, y, ex, y, ctx.lineWidth, '#000');
   ctx.strokeStyle = '#fff'; ctx.lineWidth -= 2; drawLine(ctx, x, y, ex, y, ctx.lineWidth, '#fff');
   ctx.strokeStyle = '#fb4'; ctx.lineWidth -= 2; drawLine(ctx, x, y, ex, y, ctx.lineWidth, '#fb4');
-  drawCircle(ctx, x, y, 9, '#000'); drawCircle(ctx, x, y, 8, '#fff'); drawCircle(ctx, x, y, 7, '#fb4');
+  drawCircle(ctx, x, y, NOTE_RADIUS, '#000'); drawCircle(ctx, x, y, NOTE_RADIUS-1, '#fff'); drawCircle(ctx, x, y, NOTE_RADIUS-2, '#fb4');
   drawRect(ctx, x, y-3, 5, 6, '#fb4'); drawPixelText(ctx, x, y+0.5, count.toString(), '#000'); ctx.lineCap = 'butt';
 }
 function renderPath(ctx, rs, sR, sB, eR, eB) {
-  ctx.beginPath(); let sx = getNoteX(sB), sy = getRowY(sR) + 35, ex = getNoteX(eB), ey = getRowY(eR) + 35;
+  ctx.beginPath(); let sx = getNoteX(sB), sy = getRowY(sR) + ROW_OFFSET_NOTE_CENTER, ex = getNoteX(eB), ey = getRowY(eR) + ROW_OFFSET_NOTE_CENTER;
   if (sR === eR) { ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); }
-  else { ctx.moveTo(sx, sy); ctx.lineTo(getNoteX(16) + 30, sy); for (let r = sR + 1; r < eR; r++) { ctx.moveTo(0, getRowY(r) + 35); ctx.lineTo(getNoteX(16) + 30, getRowY(r) + 35); } ctx.moveTo(0, ey); ctx.lineTo(ex, ey); } ctx.stroke();
+  else { ctx.moveTo(sx, sy); ctx.lineTo(getNoteX(16) + ROW_TRAILING, sy); for (let r = sR + 1; r < eR; r++) { ctx.moveTo(0, getRowY(r) + ROW_OFFSET_NOTE_CENTER); ctx.lineTo(getNoteX(16) + ROW_TRAILING, getRowY(r) + ROW_OFFSET_NOTE_CENTER); } ctx.moveTo(0, ey); ctx.lineTo(ex, ey); } ctx.stroke();
 }
 
 function drawChart(chart, courseId) {
@@ -212,7 +236,8 @@ function drawChart(chart, courseId) {
   const rows = []; let rTemp = [], rBeat = 0;
   course.measures.forEach(m => { const mb = (m.length[0] / m.length[1]) * 4; if (16 < rBeat + mb) { rows.push({ beats: rBeat, measures: rTemp }); rTemp = []; rBeat = 0; } rTemp.push(m); rBeat += mb; });
   if (rTemp.length) rows.push({ beats: rBeat, measures: rTemp });
-  const cW = 30 + (48 * 16) + 30, cH = 130 + (rows.length * 74) + 20;
+  const cW = ROW_LEADING + (BEAT_WIDTH * 16) + ROW_TRAILING;
+  const cH = CHART_PADDING_TOP + ((ROW_HEIGHT + ROW_MARGIN_BOTTOM) * rows.length) + CHART_PADDING_BOTTOM;
   const dpr = window.devicePixelRatio || 1;
   const canvas = document.createElement('canvas'); canvas.width = cW * dpr; canvas.height = cH * dpr;
   canvas.style.width = cW + 'px'; canvas.style.height = cH + 'px';
@@ -231,34 +256,35 @@ function drawChart(chart, courseId) {
         const eb = bAcc + (mb / (m.data.length || 1)) * e.pos;
         if (e.name === 'gogostart') { gActive = true; gStart = [ri, eb]; }
         if (e.name === 'gogoend' && gActive) {
-          if (gStart[0] === ri) drawRect(ctx, getNoteX(gStart[1]), getRowY(ri), getNoteX(eb)-getNoteX(gStart[1]), 52, '#fbb');
-          else { drawRect(ctx, getNoteX(gStart[1]), getRowY(gStart[0]), getNoteX(16) - getNoteX(gStart[1]) + 30, 52, '#fbb'); for(let r=gStart[0]+1; r<ri; r++) drawRect(ctx, 0, getRowY(r), cW, 52, '#fbb'); drawRect(ctx, 0, getRowY(ri), getNoteX(eb), 52, '#fbb'); }
+          const hG = ROW_HEIGHT;
+          if (gStart[0] === ri) drawRect(ctx, getNoteX(gStart[1]), getRowY(ri), getNoteX(eb)-getNoteX(gStart[1]), hG, '#fbb');
+          else { drawRect(ctx, getNoteX(gStart[1]), getRowY(gStart[0]), getNoteX(16) - getNoteX(gStart[1]) + ROW_TRAILING, hG, '#fbb'); for(let r=gStart[0]+1; r<ri; r++) drawRect(ctx, 0, getRowY(r), cW, hG, '#fbb'); drawRect(ctx, 0, getRowY(ri), getNoteX(eb), hG, '#fbb'); }
           gStart = null; gActive = false;
         }
       });
       bAcc += mb;
     });
-    if (gActive && gStart) { drawRect(ctx, getNoteX(gStart[1]), getRowY(gStart[0]), getNoteX(16)-getNoteX(gStart[1])+30, 52, '#fbb'); gStart = [ri+1, 0]; }
+    if (gActive && gStart) { drawRect(ctx, getNoteX(gStart[1]), getRowY(gStart[0]), getNoteX(16)-getNoteX(gStart[1])+ROW_TRAILING, ROW_HEIGHT, '#fbb'); gStart = [ri+1, 0]; }
   });
 
   rows.forEach((row, ri) => {
-    const y = getRowY(ri); drawRect(ctx, 0, y + 18, cW, 34, '#000'); drawRect(ctx, 0, y + 20, cW, 30, '#fff'); drawRect(ctx, 0, y + 22, cW, 26, '#999');
+    const y = getRowY(ri); drawRect(ctx, 0, y + ROW_HEIGHT_INFO, cW, ROW_HEIGHT_NOTE, '#000'); drawRect(ctx, 0, y + ROW_HEIGHT_INFO + 2, cW, ROW_HEIGHT_NOTE - 4, '#fff'); drawRect(ctx, 0, y + ROW_HEIGHT_INFO + 4, cW, ROW_HEIGHT_NOTE - 8, '#999');
     let bAcc = 0;
     row.measures.forEach((m, mi) => {
       const mb = (m.length[0]/m.length[1])*4;
-      for(let g=0; g<mb; g+=0.5) { const gx = getNoteX(bAcc + g); drawLine(ctx, gx, y+18, gx, y+52, g%1===0 ? 0.8 : 0.4, '#ffffff66'); }
-      drawLine(ctx, getNoteX(bAcc), y, getNoteX(bAcc), y + 52, 1.2, '#fff');
+      for(let g=0; g<mb; g+=0.5) { const gx = getNoteX(bAcc + g); drawLine(ctx, gx, y+ROW_HEIGHT_INFO, gx, y+ROW_HEIGHT, g%1===0 ? 0.8 : 0.4, '#ffffff66'); }
+      drawLine(ctx, getNoteX(bAcc), y, getNoteX(bAcc), y + ROW_HEIGHT, 1.2, '#fff');
       drawPixelText(ctx, getNoteX(bAcc) + 2, y + 17, (mi + 1 + rows.slice(0,ri).reduce((a,b)=>a+b.measures.length,0)).toString(), '#000', 'bottom', 'left');
       if(ri === 0 && mi === 0) drawPixelText(ctx, getNoteX(bAcc) + 2, y + 11, formatBpm(chart.headers.bpm).toString(), '#00f', 'bottom', 'left');
       m.events.forEach(e => {
         if (e.name === 'bpmchange' || e.name === 'scroll') {
-          const ex = getNoteX(bAcc + (mb / (m.data.length || 1)) * e.pos); drawLine(ctx, ex, y, ex, y + 52, 1, '#444');
+          const ex = getNoteX(bAcc + (mb / (m.data.length || 1)) * e.pos); drawLine(ctx, ex, y, ex, y + ROW_HEIGHT, 1, '#444');
           const isBPM = e.name === 'bpmchange'; drawPixelText(ctx, ex + 2, isBPM ? y + 11 : y + 5, e.value.toString(), isBPM ? '#00f' : '#f00', 'bottom', 'left');
         }
       });
       bAcc += mb;
     });
-    drawLine(ctx, getNoteX(bAcc), y, getNoteX(bAcc), y + 52, 1.5, '#fff');
+    drawLine(ctx, getNoteX(bAcc), y, getNoteX(bAcc), y + ROW_HEIGHT, 1.5, '#fff');
   });
 
   let lEnd = null, bIdx = 0;
@@ -268,7 +294,7 @@ function drawChart(chart, courseId) {
       const m = row.measures[mi]; const mb = (m.length[0]/m.length[1])*4;
       for (let i = m.data.length - 1; i >= 0; i--) {
         const note = m.data[i], nb = m.absB + (mb / m.data.length) * i;
-        const nx = getNoteX(nb), ny = getRowY(ri) + 35;
+        const nx = getNoteX(nb), ny = getRowY(ri) + ROW_OFFSET_NOTE_CENTER;
         if (note === '8') lEnd = [ri, nb];
         else if (note === '1') drawNote(ctx, nx, ny, '#f33', false);
         else if (note === '2') drawNote(ctx, nx, ny, '#5cf', false);
@@ -286,7 +312,7 @@ function drawChart(chart, courseId) {
   return canvas;
 }
 
-/** 統計ロジック **/
+/** 統計 **/
 function getStats(chart, courseId) {
   const course = chart.courses[courseId];
   let combo = 0, firstT = null, lastT = 0, currentBpm = chart.headers.bpm;
@@ -327,7 +353,7 @@ function drawDensityGraph(measureData) {
      .selectAll("rect").data(d => d).enter().append("rect").attr("x", (d, i) => x(i)).attr("y", d => y(d[1])).attr("height", d => y(d[0]) - y(d[1])).attr("width", x.bandwidth());
 }
 
-/** グラデーション置換 **/
+/** 置換 **/
 function replaceGradation() {
     const editor = u('.input').first(); const val = editor.value; const chart = parseTJA(val);
     const courseId = selectedDifficulty || Object.keys(chart.courses)[0]; const course = chart.courses[courseId];
@@ -344,43 +370,25 @@ function replaceGradation() {
         let hasAccel = parts[2] && parts[2].toLowerCase().startsWith('a');
         let accel = hasAccel ? parseFloat(parts[2].substring(1)) : 1.0;
         if (hasAccel) accel = 1 + (accel - 1) * 0.4;
-        
-        // 修正: コンマを命令文から分離するための高度な分割
         const tokens = content.match(/(#[A-Z]+(?:\s+[^\n]*)?)|([0-9A-G])|(,)|(\s+)/gi) || [];
         let result = "", lastHS = -1;
         const subMeasuresCount = tokens.filter(t => t === ',').length || 1;
         const totalT = mTimings[subMeasuresCount].start - mTimings[0].start;
-
-        let currentMIdx = 0;
-        let charIdxInM = 0;
-        
+        let cMIdx = 0, cCharIdx = 0;
         for(let tok of tokens) {
-            if(tok.startsWith('#')) {
-                if(!tok.toLowerCase().startsWith('#scroll')) result += tok;
-                continue;
-            }
-            if(tok === ',') {
-                result += tok; currentMIdx++; charIdxInM = 0;
-                continue;
-            }
+            if(tok.startsWith('#')) { if(!tok.toLowerCase().startsWith('#scroll')) result += tok; continue; }
+            if(tok === ',') { result += tok; cMIdx++; cCharIdx = 0; continue; }
             if(tok.match(/\s+/)) { result += tok; continue; }
-
             if("12345679".includes(tok)) {
-                const mBpm = mTimings[currentMIdx].bpm;
-                const mStart = mTimings[currentMIdx].start - mTimings[0].start;
-                // 推測されるこの小節のノーツ数
-                const notesInM = tokens.slice(tokens.indexOf(tok)).findIndex(t => t === ',') || 1;
-                
-                const t = mStart + (4 * charIdxInM / notesInM) * (60/mBpm);
+                const mBpm = mTimings[cMIdx].bpm, mStart = mTimings[cMIdx].start - mTimings[0].start;
+                const nis = tokens.slice(tokens.indexOf(tok)).findIndex(t => t === ',') || 1;
+                const t = mStart + (4 * cCharIdx / nis) * (60/mBpm);
                 const progress = Math.min(1, t / totalT);
                 let hs = hasAccel ? sHS * Math.pow(eHS/sHS, Math.pow(progress, accel)) : sHS + (eHS - sHS) * progress;
                 hs = Math.round(hs * 1000) / 1000;
                 if(hs !== lastHS) { result += `\n#SCROLL ${parseFloat(hs.toFixed(3))}\n`; lastHS = hs; }
-                result += tok;
-                charIdxInM++;
-            } else {
-                result += tok;
-            }
+                result += tok; cCharIdx++;
+            } else { result += tok; }
         }
         return result.trim() + `\n#SCROLL ${parseFloat(eHS.toFixed(3))}`;
     });
@@ -404,8 +412,8 @@ function updateUI() {
       const s = getStats(tjaParsed, selectedDifficulty); const dNames = ['かんたん','ふつう','むずかしい','おに','裏おに']; const c = tjaParsed.courses[selectedDifficulty];
       u('#st-title').text(tjaParsed.headers.title); u('#st-subtitle').text(tjaParsed.headers.subtitle || '');
       u('#st-diff').text(`${dNames[c.course]} ★${c.headers.level}`);
-      u('#st-bpm').text(s.minBpm === s.maxBpm ? `${formatBpm(s.minBpm)}` : `${formatBpm(s.minBpm)}-${formatBpm(s.maxBpm)} (${formatBpm(s.mainBpm)})`);
-      u('#st-notes').text(s.combo); u('#st-time').text(s.perfTime.toFixed(2)+"s"); u('#st-density').text(s.density.toFixed(3)+" /s");
+      let bStr = s.minBpm === s.maxBpm ? `${formatBpm(s.minBpm)}` : `${formatBpm(s.minBpm)}-${formatBpm(s.maxBpm)} (${formatBpm(s.mainBpm)})`;
+      u('#st-bpm').text(bStr); u('#st-notes').text(s.combo); u('#st-time').text(s.perfTime.toFixed(2)+"s"); u('#st-density').text(s.density.toFixed(3)+" /s");
       const rHtml = s.rendas.map(r => r.toFixed(2) + "s").join(" + ") + (s.rendas.length ? `<br><br>(合計: ${s.rendas.reduce((a,b)=>a+b,0).toFixed(2)}s)` : "0.00s");
       u('#st-renda').html(rHtml); drawDensityGraph(s.measures);
     }
@@ -424,16 +432,14 @@ u('#btn-open').on('click', () => u('#file-input').first().click());
 u('#file-input').on('change', async (e) => {
     const f = e.target.files[0]; if(!f) return;
     try {
-        let content = ""; const ab = await f.arrayBuffer();
+        const ab = await f.arrayBuffer(); let content = "";
         if (f.name.toLowerCase().match(/\.(zip|mcz)$/)) {
             const zip = await JSZip.loadAsync(ab);
             const tjaF = Object.values(zip.files).find(file => file.name.toLowerCase().endsWith('.tja') || file.name.toLowerCase().endsWith('.mc'));
             if (!tjaF) throw new Error("譜面ファイルが見つかりません");
             const buf = await tjaF.async("arraybuffer");
             content = tjaF.name.endsWith('.mc') ? convertMCtoTJA(await loadFileWithEncoding(buf)) : await loadFileWithEncoding(buf);
-        } else {
-            content = f.name.endsWith('.mc') ? convertMCtoTJA(await loadFileWithEncoding(ab)) : await loadFileWithEncoding(ab);
-        }
+        } else { content = f.name.endsWith('.mc') ? convertMCtoTJA(await loadFileWithEncoding(ab)) : await loadFileWithEncoding(ab); }
         u('.input').first().value = content; processFunc();
     } catch(err) { u('.errors').text(err.message); }
 });
