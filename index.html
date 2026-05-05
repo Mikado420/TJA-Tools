@@ -132,23 +132,69 @@ const getRowY = (row) => CHART_PADDING_TOP + ((ROW_HEIGHT + ROW_MARGIN_BOTTOM) *
 const gcd = (a, b) => b ? gcd(b, a % b) : a;
 const lcm = (a, b) => (a === 0 || b === 0) ? 0 : Math.abs(a * b) / gcd(a, b);
 function convertMCtoTJA(mcContent) {
-    const mc = JSON.parse(mcContent); let tja = "";
+    const mc = JSON.parse(mcContent); 
+    let tja = "";
     const balloons = mc.note.filter(n => n.style === 6 && n.hits).map(n => n.hits).join(',');
     const initialBpm = (mc.time && mc.time[0]) ? mc.time[0].bpm : 120;
-    tja += `TITLE:${mc.meta.song.title || ""}\nSUBTITLE:--${mc.meta.song.artist || ""}\nBPM:${formatBpm(initialBpm)}\nWAVE:${mc.note.find(n => n.sound)?.sound || ""}\nOFFSET:${((mc.note.find(n => n.sound)?.offset || 0) / -1000).toFixed(3)}\nDEMOSTART:${mc.meta && mc.meta.preview ? (mc.meta.preview / 1000).toFixed(3) : "0"}\n\nCOURSE:Oni\nLEVEL:${mc.meta.version ? mc.meta.version.replace(/[^0-9]/g, '') : "10"}\nBALLOON:${balloons}\n\n#START\n`;
-    const barBeats = 4; const notesByBar = {}; const bpmChangesByBar = {}; let maxBarIdx = 0;
-    mc.note.forEach(n => { if (n.hasOwnProperty('column')) { const tb = n.beat[0] + (n.beat[1] / n.beat[2]); const bi = Math.floor(tb / barBeats); if (!notesByBar[bi]) notesByBar[bi] = []; notesByBar[bi].push(n); maxBarIdx = Math.max(maxBarIdx, bi); } });
-    if (mc.time) { mc.time.forEach((t, i) => { if (i === 0) return; const tb = t.beat[0] + (t.beat[1] / t.beat[2]); const bi = Math.floor(tb / barBeats); if (!bpmChangesByBar[bi]) bpmChangesByBar[bi] = []; bpmChangesByBar[bi].push(t); maxBarIdx = Math.max(maxBarIdx, bi); }); }
+    
+    // bar_begin を考慮した OFFSET 計算
+    const barBegin = mc.meta.mode_ext ? (mc.meta.mode_ext.bar_begin || 0) : 0;
+    const mcNoteWithOffset = mc.note.find(n => n.sound);
+    const mcOffset = mcNoteWithOffset ? (mcNoteWithOffset.offset || 0) : 0;
+    // 計算式: -(60 / 初期bpm * bar_begin) + (元のオフセット / 1000)
+    const tjaOffsetValue = -(60 / initialBpm * barBegin) + (mcOffset / 1000);
+
+    tja += `TITLE:${mc.meta.song.title || ""}\nSUBTITLE:--${mc.meta.song.artist || ""}\nBPM:${formatBpm(initialBpm)}\nWAVE:${mc.note.find(n => n.sound)?.sound || ""}\nOFFSET:${tjaOffsetValue.toFixed(3)}\nDEMOSTART:${mc.meta && mc.meta.preview ? (mc.meta.preview / 1000).toFixed(3) : "0"}\n\nCOURSE:Oni\nLEVEL:${mc.meta.version ? mc.meta.version.replace(/[^0-9]/g, '') : "10"}\nBALLOON:${balloons}\n\n#START\n`;
+    
+    const barBeats = 4; 
+    const notesByBar = {}; 
+    const bpmChangesByBar = {}; 
+    let maxBarIdx = 0;
+
+    // ノーツのタイミングを barBegin 分だけ差し引いて処理
+    mc.note.forEach(n => { 
+        if (n.hasOwnProperty('column')) { 
+            const tb = n.beat[0] + (n.beat[1] / n.beat[2]) - barBegin; 
+            if (tb < 0) return; // 開始位置以前のノーツはスキップ
+            const bi = Math.floor(tb / barBeats); 
+            if (!notesByBar[bi]) notesByBar[bi] = []; 
+            notesByBar[bi].push({...n, adjustedBeat: tb}); 
+            maxBarIdx = Math.max(maxBarIdx, bi); 
+        } 
+    });
+
+    if (mc.time) { 
+        mc.time.forEach((t, i) => { 
+            if (i === 0) return; 
+            const tb = t.beat[0] + (t.beat[1] / t.beat[2]) - barBegin; 
+            if (tb < 0) return;
+            const bi = Math.floor(tb / barBeats); 
+            if (!bpmChangesByBar[bi]) bpmChangesByBar[bi] = []; 
+            bpmChangesByBar[bi].push({...t, adjustedBeat: tb}); 
+            maxBarIdx = Math.max(maxBarIdx, bi); 
+        }); 
+    }
+
     for (let b = 0; b <= maxBarIdx; b++) {
         const cn = notesByBar[b] || []; const cb = bpmChangesByBar[b] || []; let barLCM = 1;
-        cn.forEach(n => { const bib = n.beat[0] % barBeats; barLCM = lcm(barLCM, (barBeats * n.beat[2]) / gcd(bib * n.beat[2] + n.beat[1], barBeats * n.beat[2])); });
-        cb.forEach(t => { const bib = t.beat[0] % barBeats; barLCM = lcm(barLCM, (barBeats * t.beat[2]) / gcd(bib * t.beat[2] + t.beat[1], barBeats * t.beat[2])); });
+        cn.forEach(n => { const bib = n.adjustedBeat % barBeats; barLCM = lcm(barLCM, (barBeats * n.beat[2]) / gcd(Math.round(bib * n.beat[2]), barBeats * n.beat[2])); });
+        cb.forEach(t => { const bib = t.adjustedBeat % barBeats; barLCM = lcm(barLCM, (barBeats * t.beat[2]) / gcd(Math.round(bib * t.beat[2]), barBeats * t.beat[2])); });
+        
         const bChars = new Array(barLCM).fill('0'); const bTicks = {};
-        cb.forEach(t => { const bib = t.beat[0] % barBeats; const pos = Math.round(((bib + (t.beat[1] / t.beat[2])) / barBeats) * barLCM); bTicks[pos] = `#BPMCHANGE ${formatBpm(t.bpm)}`; });
-        cn.forEach(n => { const bib = n.beat[0] % barBeats; const pos = Math.round(((bib + (n.beat[1] / n.beat[2])) / barBeats) * barLCM);
+        cb.forEach(t => { const bib = t.adjustedBeat % barBeats; const pos = Math.round((bib / barBeats) * barLCM); bTicks[pos] = `#BPMCHANGE ${formatBpm(t.bpm)}`; });
+        cn.forEach(n => { 
+            const bib = n.adjustedBeat % barBeats; 
+            const pos = Math.round((bib / barBeats) * barLCM);
             let type = "1"; if (n.style === 2) type = "2"; if (n.style === 1) type = "3"; if (n.style === 3) type = "4"; if (n.style === 4) type = "5"; if (n.style === 6) type = "7";
             if (pos < barLCM) bChars[pos] = type;
-            if (n.endbeat) { const etb = n.endbeat[0] + (n.endbeat[1] / n.endbeat[2]); if (Math.floor(etb / barBeats) === b) { const ebib = n.endbeat[0] % barBeats; const epos = Math.round(((ebib + (n.endbeat[1] / n.endbeat[2])) / barBeats) * barLCM); if (epos < barLCM) bChars[epos] = "8"; } }
+            if (n.endbeat) { 
+                const etb = n.endbeat[0] + (n.endbeat[1] / n.endbeat[2]) - barBegin; 
+                if (Math.floor(etb / barBeats) === b) { 
+                    const ebib = etb % barBeats; 
+                    const epos = Math.round((ebib / barBeats) * barLCM); 
+                    if (epos < barLCM) bChars[epos] = "8"; 
+                } 
+            } 
         });
         let bOut = ""; for (let i = 0; i < barLCM; i++) { if (bTicks[i]) bOut += (bOut === "" ? "" : "\n") + bTicks[i] + "\n"; bOut += bChars[i]; }
         tja += bOut + ",\n";
